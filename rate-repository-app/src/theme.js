@@ -11,7 +11,7 @@ const theme = {
   paddings: {
     topAppBar: 30,
     bottomAppBar: 10,
-    leftAppBar: 10,
+    horizontalAppBar: 10,
   },
   fontSizes: {
     appBar: 20,
