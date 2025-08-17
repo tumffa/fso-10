@@ -29,6 +29,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textAppBar,
     fontWeight: 'bold',
     fontSize: theme.fontSizes.appBar,
+    fontFamily: theme.fontFamily,
   },
 });
 

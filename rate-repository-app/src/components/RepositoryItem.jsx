@@ -35,6 +35,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginTop: 5,
     fontSize: theme.fontSizes.textSecondary,
+    fontFamily: theme.fontFamily,
   },
   stats: {
     flexDirection: 'row',
