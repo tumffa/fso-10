@@ -20,4 +20,13 @@ const GET_REPOSITORIES = gql`
   }
 `;
 
-export { GET_REPOSITORIES };
+const ME = gql`
+  query {
+    me {
+      id
+      username
+    }
+  }
+`;
+
+export { GET_REPOSITORIES, ME };

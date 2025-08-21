@@ -1,76 +1,79 @@
-import { View, StyleSheet, ScrollView, Platform } from 'react-native';
-import { Link } from 'react-router-native';
+import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { Link, useNavigate } from 'react-router-native';
+import Constants from 'expo-constants';
 import Text from './Text';
-import { useRef, useEffect } from 'react';
-
 import theme from '../theme';
+import useAuthenticated from '../hooks/useAuthenticated';
+import useSignOut from '../hooks/useSignOut';
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    paddingTop: theme.paddings.topAppBar,
-    paddingBottom: theme.paddings.bottomAppBar,
+    paddingTop: Constants.statusBarHeight,
     backgroundColor: theme.colors.appBar,
+    paddingHorizontal: theme.paddings.horizontalAppBar,
+    paddingVertical: theme.paddings.bottomAppBar,
   },
   scrollView: {
-    ...(Platform.OS === 'web' ? { overflowX: 'auto' } : {}),
-  },
-  scrollContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
-    paddingHorizontal: theme.paddings.horizontalAppBar,
-    ...(Platform.OS === 'web' ? { minWidth: '150%' } : {}),
   },
-  link: {
-    textDecorationLine: 'none',
-    marginRight: 20,
+  tabContainer: {
+    flexDirection: 'row',
   },
-  textAppBar: {
+  tab: {
+    paddingHorizontal: 10,
+  },
+  tabText: {
     color: theme.colors.textAppBar,
-    fontWeight: 'bold',
     fontSize: theme.fontSizes.appBar,
     fontFamily: theme.fontFamily,
   },
 });
 
-const AppBar = () => {
-  const scrollViewRef = useRef(null);
-  
-  useEffect(() => {
-    if (Platform.OS === 'web' && scrollViewRef.current) {
-      const scrollView = scrollViewRef.current;
-      if (scrollView && scrollView.getScrollableNode) {
-        const nativeScrollView = scrollView.getScrollableNode();
-        const handleWheel = (event) => {
-          if (event.deltaY !== 0) {
-            event.preventDefault();
-            nativeScrollView.scrollLeft += event.deltaY;
-          }
-        };
-        nativeScrollView.addEventListener('wheel', handleWheel, { passive: false });
-        return () => {
-          nativeScrollView.removeEventListener('wheel', handleWheel);
-        };
-      }
+const AppBarTab = ({ children, onPress, to }) => {
+  const navigate = useNavigate();
+
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else if (to) {
+      navigate(to);
     }
-  }, []);
-  
+  };
+
+  return (
+    <Pressable style={styles.tab} onPress={handlePress}>
+      <Text fontWeight="bold" style={styles.tabText}>
+        {children}
+      </Text>
+    </Pressable>
+  );
+};
+
+const AppBar = () => {
+  const { me } = useAuthenticated();
+  const signOut = useSignOut();
+
+  const handleSignOut = () => {
+    signOut();
+  };
+
   return (
     <View style={styles.container}>
-      <ScrollView 
-        ref={scrollViewRef}
-        horizontal 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContainer} 
-        showsHorizontalScrollIndicator={true}
-        scrollEnabled={true}
-      >
-        <Link to="/" style={styles.link}>
-          <Text style={styles.textAppBar}>Repositories</Text>
-        </Link>
-        <Link to="/signin" style={styles.link}>
-          <Text style={styles.textAppBar}>Sign In</Text>
-        </Link>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scrollView}>
+        <View style={styles.tabContainer}>
+          <AppBarTab to="/">
+            Repositories
+          </AppBarTab>
+          {me ? (
+            <AppBarTab onPress={handleSignOut}>
+              Sign out
+            </AppBarTab>
+          ) : (
+            <AppBarTab to="/signin">
+              Sign in
+            </AppBarTab>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
