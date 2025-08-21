@@ -45,7 +45,7 @@ const validationSchema = yup.object().shape({
     .required('Password is required'),
 });
 
-const SignInForm = ({ onSubmit }) => {
+export const SignInForm = ({ onSubmit }) => {
   const formik = useFormik({
     initialValues: {
       username: '',
@@ -58,6 +58,7 @@ const SignInForm = ({ onSubmit }) => {
   return (
     <View style={styles.container}>
       <TextInput
+        testID="usernameField"
         style={[
           styles.input,
           formik.touched.username && formik.errors.username && styles.inputError,
@@ -68,9 +69,12 @@ const SignInForm = ({ onSubmit }) => {
         onBlur={formik.handleBlur('username')}
       />
       {formik.touched.username && formik.errors.username && (
-        <Text style={styles.errorText}>{formik.errors.username}</Text>
+        <Text testID="usernameError" style={styles.errorText}>
+          {formik.errors.username}
+        </Text>
       )}
       <TextInput
+        testID="passwordField"
         style={[
           styles.input,
           formik.touched.password && formik.errors.password && styles.inputError,
@@ -82,33 +86,34 @@ const SignInForm = ({ onSubmit }) => {
         secureTextEntry
       />
       {formik.touched.password && formik.errors.password && (
-        <Text style={styles.errorText}>{formik.errors.password}</Text>
+        <Text testID="passwordError" style={styles.errorText}>
+          {formik.errors.password}
+        </Text>
       )}
-      <Pressable style={styles.button} onPress={formik.handleSubmit}>
+      <Pressable testID="submitButton" style={styles.button} onPress={formik.handleSubmit}>
         <Text style={styles.buttonText}>Sign In</Text>
       </Pressable>
     </View>
   );
 };
 
-const SignIn = () => {
+const SignIn = ({ onSubmit }) => {
   const [signIn] = useSignIn();
   const navigate = useNavigate();
 
-  const onSubmit = async (values) => {
+  const defaultOnSubmit = async (values) => {
     const { username, password } = values;
 
     try {
       const { data } = await signIn({ username, password });
       console.log('Authentication successful:', data);
-
       navigate('/');
     } catch (e) {
       console.log('Authentication failed:', e);
     }
   };
 
-  return <SignInForm onSubmit={onSubmit} />;
+  return <SignInForm onSubmit={onSubmit || defaultOnSubmit} />;
 };
 
 export default SignIn;
