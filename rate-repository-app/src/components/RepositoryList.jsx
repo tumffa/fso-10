@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { FlatList, View, StyleSheet, Pressable } from 'react-native';
-import { useNavigate, useLocation } from 'react-router-native';
+import { useNavigate } from 'react-router-native';
 import RepositoryItem from './RepositoryItem';
+import RepositoryListOrder from './RepositoryListOrder';
+import Text from './Text';
 import useRepositories from '../hooks/useRepositories';
 
 const styles = StyleSheet.create({
@@ -11,22 +14,34 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#e1e4e8',
   },
+  loading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  error: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
 });
 
 const ItemSeparator = () => <View style={styles.separator} />;
 
-export const RepositoryListContainer = ({ repositories }) => {
+export const RepositoryListContainer = ({ 
+  repositories, 
+  selectedOrdering, 
+  setSelectedOrdering 
+}) => {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const repositoryNodes = repositories
     ? repositories.edges.map((edge) => edge.node)
     : [];
 
   const handleRepositoryPress = (repository) => {
-    console.log(repository.id)
     navigate(`/repositories/${repository.id}`);
-    console.log('Navigating to:', `/repositories/${repository.id}`);
   };
 
   return (
@@ -39,16 +54,70 @@ export const RepositoryListContainer = ({ repositories }) => {
           <RepositoryItem repository={item} />
         </Pressable>
       )}
+      ListHeaderComponent={
+        <RepositoryListOrder
+          selectedOrdering={selectedOrdering}
+          setSelectedOrdering={setSelectedOrdering}
+        />
+      }
     />
   );
 };
 
 const RepositoryList = () => {
-  const { repositories } = useRepositories();
+  const [selectedOrdering, setSelectedOrdering] = useState('latest');
+
+  const getOrderVariables = (ordering) => {
+    switch (ordering) {
+      case 'latest':
+        return {
+          orderBy: 'CREATED_AT',
+          orderDirection: 'DESC',
+        };
+      case 'highest':
+        return {
+          orderBy: 'RATING_AVERAGE',
+          orderDirection: 'DESC',
+        };
+      case 'lowest':
+        return {
+          orderBy: 'RATING_AVERAGE',
+          orderDirection: 'ASC',
+        };
+      default:
+        return {
+          orderBy: 'CREATED_AT',
+          orderDirection: 'DESC',
+        };
+    }
+  };
+
+  const orderVariables = getOrderVariables(selectedOrdering);
+  const { repositories, loading, error } = useRepositories(orderVariables);
+
+  if (loading) {
+    return (
+      <View style={styles.loading}>
+        <Text>Loading repositories...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.error}>
+        <Text>Error loading repositories: {error.message}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <RepositoryListContainer repositories={repositories} />
+      <RepositoryListContainer 
+        repositories={repositories}
+        selectedOrdering={selectedOrdering}
+        setSelectedOrdering={setSelectedOrdering}
+      />
     </View>
   );
 };
