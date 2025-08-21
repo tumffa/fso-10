@@ -2,6 +2,7 @@ import { TextInput, Pressable, View, StyleSheet } from 'react-native';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import Text from './Text';
+import useSignIn from '../hooks/useSignIn';
 
 const styles = StyleSheet.create({
   container: {
@@ -16,10 +17,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   inputError: {
-    borderColor: '#d73a4a', // Red border for invalid fields
+    borderColor: '#d73a4a',
   },
   errorText: {
-    color: '#d73a4a', // Red color for error messages
+    color: '#d73a4a',
     marginBottom: 8,
   },
   button: {
@@ -90,8 +91,17 @@ const SignInForm = ({ onSubmit }) => {
 };
 
 const SignIn = () => {
-  const onSubmit = (values) => {
-    console.log(values);
+  const [signIn] = useSignIn();
+
+  const onSubmit = async (values) => {
+    const { username, password } = values;
+
+    try {
+      const { data } = await signIn({ username, password });
+      console.log(data);
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   return <SignInForm onSubmit={onSubmit} />;
