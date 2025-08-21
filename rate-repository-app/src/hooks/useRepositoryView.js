@@ -5,6 +5,7 @@ const useRepository = (repositoryId) => {
   const { data, loading, error } = useQuery(GET_REPOSITORY, {
     variables: { repositoryId },
     fetchPolicy: 'cache-and-network',
+    skip: !repositoryId,
   });
 
   return {

@@ -1,12 +1,16 @@
-import { View, StyleSheet } from 'react-native';
+import { FlatList, View, StyleSheet } from 'react-native';
 import { useParams } from 'react-router-native';
-import RepositoryItem from './RepositoryItem';
-import useRepositoryView from '../hooks/useRepositoryView';
+import RepositoryItem from './RepositoryItem'
+import ReviewItem from './ReviewItem';
+import useRepository from '../hooks/useRepositoryView';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#e1e4e8',
+  },
+  separator: {
+    height: 10,
   },
   loading: {
     flex: 1,
@@ -21,13 +25,23 @@ const styles = StyleSheet.create({
   },
 });
 
+const ItemSeparator = () => <View style={styles.separator} />;
+
 const RepositoryView = () => {
   const { repositoryId } = useParams();
-  const { repository } = useRepositoryView(repositoryId);
+  const { repository } = useRepository(repositoryId);
+  const reviews = repository ? repository.reviews.edges.map(edge => edge.node) : [];
 
   return (
     <View style={styles.container}>
-      <RepositoryItem repository={repository}/>
+      <FlatList
+        data={reviews}
+        renderItem={({ item }) => <ReviewItem review={item} />}
+        keyExtractor={({ id }) => id}
+        ListHeaderComponent={() => <RepositoryItem repository={repository} />}
+        ItemSeparatorComponent={ItemSeparator}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 };
