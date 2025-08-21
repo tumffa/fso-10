@@ -1,4 +1,6 @@
-import { View, Image, StyleSheet } from 'react-native';
+import { View, Image, StyleSheet, Pressable } from 'react-native';
+import { useLocation } from 'react-router-native';
+import * as Linking from 'expo-linking';
 import Text from './Text';
 import theme from '../theme';
 
@@ -45,11 +47,45 @@ const styles = StyleSheet.create({
   statItem: {
     alignItems: 'center',
   },
+  button: {
+    backgroundColor: theme.colors.repositoryItemLanguageTag,
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  loading: {
+    padding: 15,
+    alignItems: 'center',
+  },
 });
 
 const RepositoryItem = ({ repository }) => {
+  const location = useLocation();
+
+  if (!repository) {
+    return (
+      <View style={[styles.container, styles.loading]}>
+        <Text comp="textSecondary">Loading repository...</Text>
+      </View>
+    );
+  }
+
+  const isRepositoryView = location.pathname.startsWith('/repositories/') && 
+                          location.pathname !== '/repositories';
+
+  const handleOpenGitHub = () => {
+    if (repository.url) {
+      Linking.openURL(repository.url);
+    }
+  };
+
   return (
-    <View testID="repositoryItem" style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Image source={{ uri: repository.ownerAvatarUrl }} style={styles.ownerAvatar} />
         <View style={styles.info}>
@@ -88,6 +124,11 @@ const RepositoryItem = ({ repository }) => {
           <Text comp="textSecondary">Rating</Text>
         </View>
       </View>
+      {isRepositoryView && repository.url && (
+        <Pressable style={styles.button} onPress={handleOpenGitHub}>
+          <Text style={styles.buttonText}>Open in GitHub</Text>
+        </Pressable>
+      )}
     </View>
   );
 };
