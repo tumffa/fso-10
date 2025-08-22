@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { FlatList, View, StyleSheet, Pressable } from 'react-native';
 import { useNavigate } from 'react-router-native';
+import { useDebounce } from 'use-debounce';
 import RepositoryItem from './RepositoryItem';
 import RepositoryListOrder from './RepositoryListOrder';
 import Text from './Text';
@@ -29,43 +30,52 @@ const styles = StyleSheet.create({
 
 const ItemSeparator = () => <View style={styles.separator} />;
 
-export const RepositoryListContainer = ({ 
-  repositories, 
-  selectedOrdering, 
-  setSelectedOrdering 
-}) => {
-  const navigate = useNavigate();
+export class RepositoryListContainer extends React.Component {
+  renderHeader = () => {
+    const props = this.props;
 
-  const repositoryNodes = repositories
-    ? repositories.edges.map((edge) => edge.node)
-    : [];
-
-  const handleRepositoryPress = (repository) => {
-    navigate(`/repositories/${repository.id}`);
+    return (
+      <RepositoryListOrder 
+        searchKeyword={props.searchKeyword}
+        setSearchKeyword={props.setSearchKeyword}
+        selectedOrdering={props.selectedOrdering}
+        setSelectedOrdering={props.setSelectedOrdering}
+      />
+    );
   };
 
-  return (
-    <FlatList
-      data={repositoryNodes}
-      ItemSeparatorComponent={ItemSeparator}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <Pressable onPress={() => handleRepositoryPress(item)}>
-          <RepositoryItem repository={item} />
-        </Pressable>
-      )}
-      ListHeaderComponent={
-        <RepositoryListOrder
-          selectedOrdering={selectedOrdering}
-          setSelectedOrdering={setSelectedOrdering}
-        />
-      }
-    />
-  );
-};
+  render() {
+    const { repositories, navigate } = this.props;
+
+    const repositoryNodes = repositories
+      ? repositories.edges.map((edge) => edge.node)
+      : [];
+
+    const handleRepositoryPress = (repository) => {
+      navigate(`/repositories/${repository.id}`);
+    };
+
+    return (
+      <FlatList
+        data={repositoryNodes}
+        ItemSeparatorComponent={ItemSeparator}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <Pressable onPress={() => handleRepositoryPress(item)}>
+            <RepositoryItem repository={item} />
+          </Pressable>
+        )}
+        ListHeaderComponent={this.renderHeader}
+      />
+    );
+  }
+}
 
 const RepositoryList = () => {
   const [selectedOrdering, setSelectedOrdering] = useState('latest');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [debouncedSearchKeyword] = useDebounce(searchKeyword, 500);
+  const navigate = useNavigate();
 
   const getOrderVariables = (ordering) => {
     switch (ordering) {
@@ -93,7 +103,12 @@ const RepositoryList = () => {
   };
 
   const orderVariables = getOrderVariables(selectedOrdering);
-  const { repositories, loading, error } = useRepositories(orderVariables);
+  const variables = {
+    ...orderVariables,
+    searchKeyword: debouncedSearchKeyword || undefined,
+  };
+
+  const { repositories, loading, error } = useRepositories(variables);
 
   if (loading) {
     return (
@@ -115,8 +130,11 @@ const RepositoryList = () => {
     <View style={styles.container}>
       <RepositoryListContainer 
         repositories={repositories}
+        searchKeyword={searchKeyword}
+        setSearchKeyword={setSearchKeyword}
         selectedOrdering={selectedOrdering}
         setSelectedOrdering={setSelectedOrdering}
+        navigate={navigate}
       />
     </View>
   );

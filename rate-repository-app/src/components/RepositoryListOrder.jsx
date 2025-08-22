@@ -1,4 +1,5 @@
 import { View, StyleSheet } from 'react-native';
+import { Searchbar } from 'react-native-paper';
 import { Picker } from '@react-native-picker/picker';
 import Text from './Text';
 
@@ -7,6 +8,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 16,
     marginBottom: 10,
+  },
+  searchbar: {
+    marginBottom: 16,
+    elevation: 0,
+    backgroundColor: '#f6f8fa',
   },
   label: {
     marginBottom: 8,
@@ -19,9 +25,20 @@ const styles = StyleSheet.create({
   },
 });
 
-const RepositoryListOrder = ({ selectedOrdering, setSelectedOrdering }) => {
+const RepositoryListOrder = ({ 
+  searchKeyword, 
+  setSearchKeyword, 
+  selectedOrdering, 
+  setSelectedOrdering 
+}) => {
   return (
     <View style={styles.container}>
+      <Searchbar
+        style={styles.searchbar}
+        placeholder="Search repositories..."
+        onChangeText={setSearchKeyword}
+        value={searchKeyword}
+      />
       <Text style={styles.label}>Select a sorting order</Text>
       <Picker
         style={styles.picker}
